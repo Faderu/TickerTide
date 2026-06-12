@@ -40,6 +40,18 @@
             app:layout_constraintStart_toStartOf="@id/view_icon_bg"
             app:layout_constraintTop_toTopOf="@id/view_icon_bg" />
 
+        <!-- Logo perusahaan dari FMP -->
+        <ImageView
+            android:id="@+id/iv_stock_logo"
+            android:layout_width="46dp"
+            android:layout_height="46dp"
+            android:scaleType="centerCrop"
+            android:contentDescription="@string/app_name"
+            app:layout_constraintBottom_toBottomOf="@id/view_icon_bg"
+            app:layout_constraintEnd_toEndOf="@id/view_icon_bg"
+            app:layout_constraintStart_toStartOf="@id/view_icon_bg"
+            app:layout_constraintTop_toTopOf="@id/view_icon_bg" />
+
         <!-- Simbol saham (mis. AAPL) -->
         <TextView
             android:id="@+id/tv_stock_symbol"

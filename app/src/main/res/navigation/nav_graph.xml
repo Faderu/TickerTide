@@ -45,4 +45,58 @@
             app:argType="string" />
     </fragment>
 
+    <!--
+        WatchlistFragment - Menampilkan daftar saham yang tersimpan/cache
+    -->
+    <fragment
+        android:id="@+id/nav_watchlist"
+        android:name="com.example.tickertide.ui.WatchlistFragment"
+        android:label="@string/nav_watchlist"
+        tools:layout="@layout/fragment_watchlist">
+
+        <action
+            android:id="@+id/action_watchlist_to_detail"
+            app:destination="@id/stockDetailFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
+    </fragment>
+
+    <!--
+        PortfolioFragment - Simulasi Trading / Portfolio
+    -->
+    <fragment
+        android:id="@+id/nav_portfolio"
+        android:name="com.example.tickertide.ui.PortfolioFragment"
+        android:label="Portfolio"
+        tools:layout="@layout/fragment_portfolio">
+
+        <action
+            android:id="@+id/action_portfolio_to_detail"
+            app:destination="@id/stockDetailFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
+    </fragment>
+
+    <!--
+        AlertsFragment - Price Alerts
+    -->
+    <fragment
+        android:id="@+id/nav_alerts"
+        android:name="com.example.tickertide.ui.AlertsFragment"
+        android:label="Alerts"
+        tools:layout="@layout/fragment_alerts">
+
+        <action
+            android:id="@+id/action_alerts_to_detail"
+            app:destination="@id/stockDetailFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
+    </fragment>
+
 </navigation>

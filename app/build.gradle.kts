@@ -74,6 +74,9 @@ dependencies {
     implementation(libs.lifecycle.viewmodel)
     implementation(libs.lifecycle.livedata)
 
+    // Image Loading
+    implementation(libs.glide)
+
     // Test
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)

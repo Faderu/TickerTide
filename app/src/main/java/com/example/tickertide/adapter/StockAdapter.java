@@ -4,6 +4,7 @@ import android.content.res.ColorStateList;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -86,6 +87,7 @@ public class StockAdapter extends ListAdapter<Stock, StockAdapter.StockViewHolde
         private final TextView tvCompanyName;
         private final TextView tvPrice;
         private final TextView tvChangePercent;
+        private final TextView tvSymbolLetter;
 
         StockViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -94,6 +96,7 @@ public class StockAdapter extends ListAdapter<Stock, StockAdapter.StockViewHolde
             tvCompanyName  = itemView.findViewById(R.id.tv_company_name);
             tvPrice        = itemView.findViewById(R.id.tv_stock_price);
             tvChangePercent = itemView.findViewById(R.id.tv_change_percent);
+            tvSymbolLetter  = itemView.findViewById(R.id.tv_symbol_letter);
         }
 
         void bind(Stock stock, OnStockClickListener listener) {
@@ -101,6 +104,30 @@ public class StockAdapter extends ListAdapter<Stock, StockAdapter.StockViewHolde
             tvSymbol.setText(stock.getSymbol());
             tvCompanyName.setText(stock.getCompanyName());
             tvPrice.setText(String.format(Locale.US, "$%.2f", stock.getCurrentPrice()));
+
+            // Initial letter
+            if (stock.getSymbol() != null && !stock.getSymbol().isEmpty()) {
+                tvSymbolLetter.setText(stock.getSymbol().substring(0, 1).toUpperCase());
+                tvSymbolLetter.setVisibility(View.VISIBLE);
+            }
+
+            // Load logo via Glide
+            String logoUrl = "https://financialmodelingprep.com/image-stock/" + stock.getSymbol() + ".png";
+            ImageView ivLogo = itemView.findViewById(R.id.iv_stock_logo);
+            com.bumptech.glide.Glide.with(itemView.getContext())
+                    .load(logoUrl)
+                    .listener(new com.bumptech.glide.request.RequestListener<android.graphics.drawable.Drawable>() {
+                        @Override
+                        public boolean onLoadFailed(@androidx.annotation.Nullable com.bumptech.glide.load.engine.GlideException e, Object model, com.bumptech.glide.request.target.Target<android.graphics.drawable.Drawable> target, boolean isFirstResource) {
+                            return false; // biarkan letter text tetap terlihat sebagai fallback
+                        }
+                        @Override
+                        public boolean onResourceReady(android.graphics.drawable.Drawable resource, Object model, com.bumptech.glide.request.target.Target<android.graphics.drawable.Drawable> target, com.bumptech.glide.load.DataSource dataSource, boolean isFirstResource) {
+                            tvSymbolLetter.setVisibility(View.GONE);
+                            return false;
+                        }
+                    })
+                    .into(ivLogo);
 
             // Format perubahan harga dengan tanda + / -
             double change = stock.getChangePercent();

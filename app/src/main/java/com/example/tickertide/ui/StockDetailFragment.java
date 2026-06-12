@@ -180,6 +180,14 @@ public class StockDetailFragment extends Fragment {
         binding.tvDetailCompanyName.setText(stock.getCompanyName() != null
                 ? stock.getCompanyName() : "-");
 
+        // Load logo via Glide
+        if (stock.getSymbol() != null && !stock.getSymbol().isEmpty()) {
+            String logoUrl = "https://financialmodelingprep.com/image-stock/" + stock.getSymbol() + ".png";
+            com.bumptech.glide.Glide.with(this)
+                    .load(logoUrl)
+                    .into(binding.ivDetailLogo);
+        }
+
         binding.tvDetailPrice.setText(
                 String.format(Locale.US, "$%.2f", stock.getCurrentPrice())
         );
@@ -205,6 +213,160 @@ public class StockDetailFragment extends Fragment {
         );
         binding.tvDetailVolume.setText(formatVolume(stock.getVolume()));
         binding.tvDetailMarketCap.setText(formatMarketCap(stock.getMarketCap()));
+
+        // Setup Bookmark Toggle
+        updateBookmarkIcon(stock.isWatchlist());
+        binding.ivBookmark.setOnClickListener(v -> {
+            boolean newState = !stock.isWatchlist();
+            stock.setWatchlist(newState);
+            updateBookmarkIcon(newState);
+            
+            // Simpan ke database via background thread
+            AppExecutors.getInstance().diskIO().execute(() -> {
+                DatabaseHelper.getInstance(requireContext()).insertOrUpdateStock(stock);
+                AppExecutors.getInstance().mainThread().execute(() -> {
+                    String msg = newState ? "Ditambahkan ke Watchlist" : "Dihapus dari Watchlist";
+                    android.widget.Toast.makeText(requireContext(), msg, android.widget.Toast.LENGTH_SHORT).show();
+                });
+            });
+        });
+
+        // Setup Trade Buttons
+        binding.btnBuy.setOnClickListener(v -> showTradeDialog(stock, true));
+        binding.btnSell.setOnClickListener(v -> showTradeDialog(stock, false));
+
+        // Setup Alert Button
+        binding.ivAlert.setOnClickListener(v -> showAlertDialog(stock));
+    }
+
+    private void showAlertDialog(Stock stock) {
+        android.content.Context context = requireContext();
+        android.widget.EditText input = new android.widget.EditText(context);
+        input.setInputType(android.text.InputType.TYPE_CLASS_NUMBER | android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL);
+        input.setHint("Target Harga ($)");
+        
+        new androidx.appcompat.app.AlertDialog.Builder(context)
+            .setTitle("Set Price Alert untuk " + stock.getSymbol())
+            .setMessage("Harga saat ini: $" + stock.getCurrentPrice() + "\nMasukkan target harga:")
+            .setView(input)
+            .setPositiveButton("Simpan", (dialog, which) -> {
+                String val = input.getText().toString();
+                if (!val.isEmpty()) {
+                    try {
+                        double target = Double.parseDouble(val);
+                        boolean isAbove = target > stock.getCurrentPrice();
+                        
+                        com.example.tickertide.model.PriceAlert alert = new com.example.tickertide.model.PriceAlert(
+                            stock.getSymbol(), target, isAbove, true
+                        );
+                        
+                        AppExecutors.getInstance().diskIO().execute(() -> {
+                            DatabaseHelper.getInstance(requireContext()).insertAlert(alert);
+                            AppExecutors.getInstance().mainThread().execute(() -> 
+                                android.widget.Toast.makeText(context, "Alert berhasil disimpan!", android.widget.Toast.LENGTH_SHORT).show()
+                            );
+                        });
+                    } catch (NumberFormatException e) {
+                        android.widget.Toast.makeText(context, "Input tidak valid", android.widget.Toast.LENGTH_SHORT).show();
+                    }
+                }
+            })
+            .setNegativeButton("Batal", null)
+            .show();
+    }
+
+    private void showTradeDialog(Stock stock, boolean isBuy) {
+        android.content.Context context = requireContext();
+        android.widget.EditText input = new android.widget.EditText(context);
+        input.setInputType(android.text.InputType.TYPE_CLASS_NUMBER | android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL);
+        input.setHint("Jumlah lembar saham");
+        
+        String title = isBuy ? "Beli " + stock.getSymbol() : "Jual " + stock.getSymbol();
+        
+        new androidx.appcompat.app.AlertDialog.Builder(context)
+            .setTitle(title)
+            .setMessage("Harga saat ini: $" + stock.getCurrentPrice() + "\nMasukkan jumlah lembar:")
+            .setView(input)
+            .setPositiveButton(isBuy ? "Beli" : "Jual", (dialog, which) -> {
+                String val = input.getText().toString();
+                if (!val.isEmpty()) {
+                    try {
+                        double shares = Double.parseDouble(val);
+                        executeTrade(stock, shares, isBuy);
+                    } catch (NumberFormatException e) {
+                        android.widget.Toast.makeText(context, "Input tidak valid", android.widget.Toast.LENGTH_SHORT).show();
+                    }
+                }
+            })
+            .setNegativeButton("Batal", null)
+            .show();
+    }
+
+    private void executeTrade(Stock stock, double shares, boolean isBuy) {
+        AppExecutors.getInstance().diskIO().execute(() -> {
+            DatabaseHelper db = DatabaseHelper.getInstance(requireContext());
+            android.content.SharedPreferences prefs = requireContext().getSharedPreferences("TickerTidePrefs", android.content.Context.MODE_PRIVATE);
+            float currentBalance = prefs.getFloat("cash_balance", 10000.00f);
+            double totalCost = shares * stock.getCurrentPrice();
+            
+            com.example.tickertide.model.PortfolioItem portfolio = db.getPortfolioItemBySymbol(stock.getSymbol());
+            if (portfolio == null) {
+                portfolio = new com.example.tickertide.model.PortfolioItem(stock.getSymbol(), 0, 0);
+            }
+            
+            if (isBuy) {
+                if (currentBalance >= totalCost) {
+                    // Update Balance
+                    currentBalance -= totalCost;
+                    prefs.edit().putFloat("cash_balance", currentBalance).apply();
+                    
+                    // Update Portfolio (Weighted Average Cost)
+                    double newTotalCost = (portfolio.getShares() * portfolio.getAvgBuyPrice()) + totalCost;
+                    portfolio.setShares(portfolio.getShares() + shares);
+                    portfolio.setAvgBuyPrice(newTotalCost / portfolio.getShares());
+                    
+                    db.insertOrUpdatePortfolioItem(portfolio);
+                    
+                    AppExecutors.getInstance().mainThread().execute(() -> 
+                        android.widget.Toast.makeText(requireContext(), "Berhasil beli " + shares + " " + stock.getSymbol(), android.widget.Toast.LENGTH_SHORT).show()
+                    );
+                } else {
+                    AppExecutors.getInstance().mainThread().execute(() -> 
+                        android.widget.Toast.makeText(requireContext(), "Saldo tidak cukup!", android.widget.Toast.LENGTH_SHORT).show()
+                    );
+                }
+            } else { // SELL
+                if (portfolio.getShares() >= shares) {
+                    // Update Balance
+                    currentBalance += totalCost;
+                    prefs.edit().putFloat("cash_balance", currentBalance).apply();
+                    
+                    // Update Portfolio
+                    portfolio.setShares(portfolio.getShares() - shares);
+                    if (portfolio.getShares() <= 0) {
+                        db.deletePortfolioItem(stock.getSymbol());
+                    } else {
+                        db.insertOrUpdatePortfolioItem(portfolio);
+                    }
+                    
+                    AppExecutors.getInstance().mainThread().execute(() -> 
+                        android.widget.Toast.makeText(requireContext(), "Berhasil jual " + shares + " " + stock.getSymbol(), android.widget.Toast.LENGTH_SHORT).show()
+                    );
+                } else {
+                    AppExecutors.getInstance().mainThread().execute(() -> 
+                        android.widget.Toast.makeText(requireContext(), "Lembar saham tidak cukup!", android.widget.Toast.LENGTH_SHORT).show()
+                    );
+                }
+            }
+        });
+    }
+
+    private void updateBookmarkIcon(boolean isWatchlist) {
+        if (isWatchlist) {
+            binding.ivBookmark.setImageResource(android.R.drawable.btn_star_big_on);
+        } else {
+            binding.ivBookmark.setImageResource(android.R.drawable.btn_star_big_off);
+        }
     }
 
     // ================================================================

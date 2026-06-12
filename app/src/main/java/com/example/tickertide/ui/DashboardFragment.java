@@ -44,13 +44,16 @@ public class DashboardFragment extends Fragment implements StockAdapter.OnStockC
 
     private static final String TAG = "DashboardFragment";
 
-    // Daftar simbol saham default yang akan ditampilkan
-    private static final String DEFAULT_SYMBOLS = "AAPL,GOOGL,MSFT,AMZN,TSLA,META,NVDA,NFLX";
+    // Daftar simbol saham default yang akan ditampilkan (30 emiten populer)
+    private static final String DEFAULT_SYMBOLS = "AAPL,MSFT,GOOGL,AMZN,NVDA,META,TSLA,BRK.B,LLY,V,TSM,AVGO,JPM,WMT,UNH,MA,JNJ,PG,HD,ORCL,COST,MRK,BAC,ABBV,CRM,CVX,NFLX,AMD,PEP,KO";
 
     private FragmentDashboardBinding binding;
     private StockAdapter adapter;
     private DatabaseHelper dbHelper;
     private AppExecutors executors;
+    
+    // Simpan list original untuk keperluan filter pencarian
+    private List<Stock> allStocksList;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
@@ -68,9 +71,55 @@ public class DashboardFragment extends Fragment implements StockAdapter.OnStockC
 
         setupRecyclerView();
         setupRefreshButton();
+        setupSearchView();
 
         // Load data pertama kali
         loadStockData();
+    }
+
+    /**
+     * Setup SearchView untuk memfilter list saham secara lokal
+     */
+    private void setupSearchView() {
+        binding.searchBar.setOnQueryTextListener(new androidx.appcompat.widget.SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                filterStocks(query);
+                binding.searchBar.clearFocus();
+                return true;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                filterStocks(newText);
+                return true;
+            }
+        });
+    }
+
+    /**
+     * Memfilter saham berdasarkan query (simbol atau nama perusahaan)
+     */
+    private void filterStocks(String query) {
+        if (allStocksList == null) return;
+        
+        if (query == null || query.isEmpty()) {
+            adapter.submitList(allStocksList);
+            return;
+        }
+
+        String lowerQuery = query.toLowerCase();
+        List<Stock> filteredList = new java.util.ArrayList<>();
+        
+        for (Stock stock : allStocksList) {
+            boolean matchSymbol = stock.getSymbol() != null && stock.getSymbol().toLowerCase().contains(lowerQuery);
+            boolean matchName = stock.getCompanyName() != null && stock.getCompanyName().toLowerCase().contains(lowerQuery);
+            if (matchSymbol || matchName) {
+                filteredList.add(stock);
+            }
+        }
+        
+        adapter.submitList(filteredList);
     }
 
     /**
@@ -140,12 +189,14 @@ public class DashboardFragment extends Fragment implements StockAdapter.OnStockC
                 binding.swipeRefreshLayout.setRefreshing(false);
 
                 if (response.isSuccessful() && response.body() != null) {
-                    List<Stock> stocks = response.body();
-                    // Update UI dengan data baru
-                    adapter.submitList(stocks);
+                    allStocksList = response.body();
+                    // Update UI dengan data baru (kirim query search saat ini jika ada)
+                    String currentQuery = binding.searchBar.getQuery().toString();
+                    filterStocks(currentQuery);
+                    
                     // Simpan ke SQLite untuk fallback offline
-                    saveToLocalDb(stocks);
-                    Log.d(TAG, "API sukses, " + stocks.size() + " saham loaded.");
+                    saveToLocalDb(allStocksList);
+                    Log.d(TAG, "API sukses, " + allStocksList.size() + " saham loaded.");
                 } else {
                     Log.e(TAG, "API response error: " + response.code());
                     // Fallback ke data lokal jika response error
@@ -178,7 +229,7 @@ public class DashboardFragment extends Fragment implements StockAdapter.OnStockC
     private void loadFromLocalDb() {
         executors.diskIO().execute(() -> {
             // Operasi SQLite di background thread
-            List<Stock> localStocks = dbHelper.getAllWatchlistStocks();
+            List<Stock> localStocks = dbHelper.getAllCachedStocks();
 
             // Update UI di main thread
             executors.mainThread().execute(() -> {
@@ -186,7 +237,9 @@ public class DashboardFragment extends Fragment implements StockAdapter.OnStockC
                     showEmptyState(true);
                 } else {
                     showEmptyState(false);
-                    adapter.submitList(localStocks);
+                    allStocksList = localStocks;
+                    String currentQuery = binding.searchBar.getQuery().toString();
+                    filterStocks(currentQuery);
                     Log.d(TAG, "Loaded " + localStocks.size() + " saham dari lokal DB.");
                 }
             });

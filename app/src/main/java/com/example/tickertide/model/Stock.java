@@ -12,18 +12,19 @@ import com.google.gson.annotations.SerializedName;
  */
 public class Stock {
 
-    // Kolom untuk SQLite
-    public static final String TABLE_NAME       = "watchlist";
-    public static final String COL_ID           = "_id";
-    public static final String COL_SYMBOL       = "symbol";
-    public static final String COL_NAME         = "company_name";
-    public static final String COL_PRICE        = "current_price";
-    public static final String COL_CHANGE       = "change_percent";
-    public static final String COL_HIGH         = "day_high";
-    public static final String COL_LOW          = "day_low";
-    public static final String COL_VOLUME       = "volume";
-    public static final String COL_MARKET_CAP   = "market_cap";
-    public static final String COL_TIMESTAMP    = "timestamp";
+    // Constants untuk kolom database
+    public static final String TABLE_NAME = "stocks";
+    public static final String COL_ID = "id";
+    public static final String COL_SYMBOL = "symbol";
+    public static final String COL_NAME = "company_name";
+    public static final String COL_PRICE = "current_price";
+    public static final String COL_CHANGE = "change_percent";
+    public static final String COL_HIGH = "day_high";
+    public static final String COL_LOW = "day_low";
+    public static final String COL_VOLUME = "volume";
+    public static final String COL_MARKET_CAP = "market_cap";
+    public static final String COL_TIMESTAMP = "timestamp";
+    public static final String COL_IS_WATCHLIST = "is_watchlist"; // Tambahan fitur Watchlist CRUD
 
     // Field - mapped dari JSON via @SerializedName
     @SerializedName("symbol")
@@ -52,6 +53,7 @@ public class Stock {
 
     // Field tambahan untuk local DB tracking
     private long timestamp;
+    private boolean isWatchlist; // true jika user menambahkannya ke watchlist
 
     // -------------------------
     // Constructors
@@ -105,6 +107,14 @@ public class Stock {
 
     public long getTimestamp() { return timestamp; }
     public void setTimestamp(long timestamp) { this.timestamp = timestamp; }
+
+    public boolean isWatchlist() {
+        return isWatchlist;
+    }
+
+    public void setWatchlist(boolean watchlist) {
+        isWatchlist = watchlist;
+    }
 
     /**
      * Cek apakah perubahan harga positif (naik)

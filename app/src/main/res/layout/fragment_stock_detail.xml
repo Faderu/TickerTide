@@ -64,18 +64,30 @@
             android:layout_height="wrap_content"
             android:padding="20dp">
 
+            <!-- Logo perusahaan dari FMP -->
+            <ImageView
+                android:id="@+id/iv_detail_logo"
+                android:layout_width="64dp"
+                android:layout_height="64dp"
+                android:background="@drawable/shape_circle_tonal"
+                android:scaleType="centerCrop"
+                android:contentDescription="@string/app_name"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
             <!-- Header: Symbol + Company Name -->
             <TextView
                 android:id="@+id/tv_detail_symbol"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
                 android:text="AAPL"
                 android:textColor="@color/text_primary"
                 android:textSize="36sp"
                 android:textStyle="bold"
                 android:letterSpacing="0.05"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
+                app:layout_constraintStart_toEndOf="@id/iv_detail_logo"
+                app:layout_constraintTop_toTopOf="@id/iv_detail_logo" />
 
             <TextView
                 android:id="@+id/tv_detail_company_name"
@@ -85,8 +97,32 @@
                 android:text="Apple Inc."
                 android:textColor="@color/text_secondary"
                 android:textSize="15sp"
-                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintStart_toStartOf="@id/tv_detail_symbol"
                 app:layout_constraintTop_toBottomOf="@id/tv_detail_symbol" />
+
+            <!-- Bookmark / Watchlist Toggle -->
+            <ImageView
+                android:id="@+id/iv_bookmark"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:src="@android:drawable/btn_star_big_off"
+                android:contentDescription="Toggle Watchlist"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="@id/tv_detail_symbol"
+                app:layout_constraintBottom_toBottomOf="@id/tv_detail_symbol" />
+
+            <!-- Price Alert Icon -->
+            <ImageView
+                android:id="@+id/iv_alert"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:layout_marginEnd="16dp"
+                android:src="@android:drawable/ic_popup_reminder"
+                android:contentDescription="Set Price Alert"
+                app:tint="@color/text_primary"
+                app:layout_constraintEnd_toStartOf="@id/iv_bookmark"
+                app:layout_constraintTop_toTopOf="@id/tv_detail_symbol"
+                app:layout_constraintBottom_toBottomOf="@id/tv_detail_symbol" />
 
             <!-- Price + Change -->
             <TextView
@@ -243,6 +279,52 @@
 
                 </GridLayout>
             </com.google.android.material.card.MaterialCardView>
+
+            <!-- Trading Section -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="32dp"
+                android:text="Trade"
+                android:textColor="@color/text_primary"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/card_stats" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="64dp"
+                android:orientation="horizontal"
+                app:layout_constraintTop_toBottomOf="@id/card_stats">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_sell"
+                    android:layout_width="0dp"
+                    android:layout_height="56dp"
+                    android:layout_weight="1"
+                    android:layout_marginEnd="8dp"
+                    android:text="SELL"
+                    android:textColor="@color/text_primary"
+                    android:textStyle="bold"
+                    app:backgroundTint="@color/surface_dark"
+                    app:strokeColor="@color/border_tonal"
+                    app:strokeWidth="1dp"
+                    app:cornerRadius="12dp" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_buy"
+                    android:layout_width="0dp"
+                    android:layout_height="56dp"
+                    android:layout_weight="1"
+                    android:layout_marginStart="8dp"
+                    android:text="BUY"
+                    android:textColor="@color/bg_deep_space"
+                    android:textStyle="bold"
+                    app:backgroundTint="@color/positive_green"
+                    app:cornerRadius="12dp" />
+            </LinearLayout>
 
         </androidx.constraintlayout.widget.ConstraintLayout>
     </androidx.core.widget.NestedScrollView>

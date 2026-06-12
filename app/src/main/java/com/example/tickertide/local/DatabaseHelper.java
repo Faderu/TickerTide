@@ -34,7 +34,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String TAG = "DatabaseHelper";
 
     private static final String DB_NAME    = "tickertide.db";
-    private static final int    DB_VERSION = 1;
+    private static final int    DB_VERSION = 2; // Naik ke v2 untuk fitur Watchlist CRUD
 
     // SQL untuk membuat tabel watchlist
     private static final String CREATE_TABLE_WATCHLIST =
@@ -48,7 +48,27 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             Stock.COL_LOW        + " REAL DEFAULT 0, " +
             Stock.COL_VOLUME     + " REAL DEFAULT 0, " +
             Stock.COL_MARKET_CAP + " REAL DEFAULT 0, " +
-            Stock.COL_TIMESTAMP  + " INTEGER DEFAULT 0" +
+            Stock.COL_TIMESTAMP  + " INTEGER DEFAULT 0, " +
+            Stock.COL_IS_WATCHLIST + " INTEGER DEFAULT 0" +
+            ");";
+
+    // SQL untuk membuat tabel portofolio
+    private static final String CREATE_TABLE_PORTFOLIO =
+            "CREATE TABLE IF NOT EXISTS " + com.example.tickertide.model.PortfolioItem.TABLE_NAME + " (" +
+            com.example.tickertide.model.PortfolioItem.COL_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+            com.example.tickertide.model.PortfolioItem.COL_SYMBOL + " TEXT NOT NULL UNIQUE, " +
+            com.example.tickertide.model.PortfolioItem.COL_SHARES + " REAL DEFAULT 0, " +
+            com.example.tickertide.model.PortfolioItem.COL_AVG_BUY_PRICE + " REAL DEFAULT 0" +
+            ");";
+
+    // SQL untuk membuat tabel alerts
+    private static final String CREATE_TABLE_ALERTS =
+            "CREATE TABLE IF NOT EXISTS " + com.example.tickertide.model.PriceAlert.TABLE_NAME + " (" +
+            com.example.tickertide.model.PriceAlert.COL_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+            com.example.tickertide.model.PriceAlert.COL_SYMBOL + " TEXT NOT NULL, " +
+            com.example.tickertide.model.PriceAlert.COL_TARGET_PRICE + " REAL NOT NULL, " +
+            com.example.tickertide.model.PriceAlert.COL_IS_ABOVE + " INTEGER DEFAULT 0, " +
+            com.example.tickertide.model.PriceAlert.COL_IS_ACTIVE + " INTEGER DEFAULT 1" +
             ");";
 
     // Singleton instance
@@ -71,13 +91,17 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     @Override
     public void onCreate(SQLiteDatabase db) {
         db.execSQL(CREATE_TABLE_WATCHLIST);
-        Log.d(TAG, "Database & tabel watchlist berhasil dibuat.");
+        db.execSQL(CREATE_TABLE_PORTFOLIO);
+        db.execSQL(CREATE_TABLE_ALERTS);
+        Log.d(TAG, "Database & tabel berhasil dibuat.");
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         // Untuk versi baru: drop tabel lama dan buat ulang
         db.execSQL("DROP TABLE IF EXISTS " + Stock.TABLE_NAME);
+        db.execSQL("DROP TABLE IF EXISTS " + com.example.tickertide.model.PortfolioItem.TABLE_NAME);
+        db.execSQL("DROP TABLE IF EXISTS " + com.example.tickertide.model.PriceAlert.TABLE_NAME);
         onCreate(db);
         Log.d(TAG, "Database diupgrade dari v" + oldVersion + " ke v" + newVersion);
     }
@@ -95,6 +119,13 @@ public class DatabaseHelper extends SQLiteOpenHelper {
      */
     public long insertOrUpdateStock(Stock stock) {
         SQLiteDatabase db = getWritableDatabase();
+        
+        // Pertahankan status is_watchlist jika sudah ada
+        Stock existing = getStockBySymbol(stock.getSymbol());
+        if (existing != null) {
+            stock.setWatchlist(existing.isWatchlist());
+        }
+
         ContentValues values = stockToContentValues(stock);
 
         // CONFLICT_REPLACE: jika UNIQUE constraint (symbol) bertabrakan, replace data lama
@@ -125,6 +156,12 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.beginTransaction();
         try {
             for (Stock stock : stocks) {
+                // Pertahankan status is_watchlist jika sudah ada
+                Stock existing = getStockBySymbol(stock.getSymbol());
+                if (existing != null) {
+                    stock.setWatchlist(existing.isWatchlist());
+                }
+
                 ContentValues values = stockToContentValues(stock);
                 db.insertWithOnConflict(
                         Stock.TABLE_NAME,
@@ -178,7 +215,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
      *
      * @return List<Stock> semua data saham lokal
      */
-    public List<Stock> getAllWatchlistStocks() {
+    public List<Stock> getAllCachedStocks() {
         List<Stock> stocks = new ArrayList<>();
         SQLiteDatabase db = getReadableDatabase();
 
@@ -200,6 +237,33 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
 
         Log.d(TAG, "Loaded " + stocks.size() + " saham dari lokal DB.");
+        return stocks;
+    }
+
+    /**
+     * Mengambil hanya saham yang ada di watchlist (is_watchlist = 1)
+     */
+    public List<Stock> getStarredWatchlistStocks() {
+        List<Stock> stocks = new ArrayList<>();
+        SQLiteDatabase db = getReadableDatabase();
+
+        Cursor cursor = db.query(
+                Stock.TABLE_NAME,
+                null,
+                Stock.COL_IS_WATCHLIST + " = 1",
+                null,
+                null,
+                null,
+                Stock.COL_TIMESTAMP + " DESC"
+        );
+
+        if (cursor != null && cursor.moveToFirst()) {
+            do {
+                stocks.add(cursorToStock(cursor));
+            } while (cursor.moveToNext());
+            cursor.close();
+        }
+
         return stocks;
     }
 
@@ -267,6 +331,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         values.put(Stock.COL_VOLUME,     stock.getVolume());
         values.put(Stock.COL_MARKET_CAP, stock.getMarketCap());
         values.put(Stock.COL_TIMESTAMP,  System.currentTimeMillis());
+        values.put(Stock.COL_IS_WATCHLIST, stock.isWatchlist() ? 1 : 0);
         return values;
     }
 
@@ -285,6 +350,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         int idxVolume    = cursor.getColumnIndexOrThrow(Stock.COL_VOLUME);
         int idxMarketCap = cursor.getColumnIndexOrThrow(Stock.COL_MARKET_CAP);
         int idxTimestamp = cursor.getColumnIndexOrThrow(Stock.COL_TIMESTAMP);
+        int idxIsWatchlist = cursor.getColumnIndexOrThrow(Stock.COL_IS_WATCHLIST);
 
         stock.setSymbol(cursor.getString(idxSymbol));
         stock.setCompanyName(cursor.getString(idxName));
@@ -295,7 +361,150 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         stock.setVolume(cursor.getDouble(idxVolume));
         stock.setMarketCap(cursor.getDouble(idxMarketCap));
         stock.setTimestamp(cursor.getLong(idxTimestamp));
+        stock.setWatchlist(cursor.getInt(idxIsWatchlist) == 1);
 
         return stock;
+    }
+
+    // ================================================================
+    // OPERASI PORTFOLIO
+    // ================================================================
+
+    public long insertOrUpdatePortfolioItem(com.example.tickertide.model.PortfolioItem item) {
+        SQLiteDatabase db = getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(com.example.tickertide.model.PortfolioItem.COL_SYMBOL, item.getSymbol());
+        values.put(com.example.tickertide.model.PortfolioItem.COL_SHARES, item.getShares());
+        values.put(com.example.tickertide.model.PortfolioItem.COL_AVG_BUY_PRICE, item.getAvgBuyPrice());
+
+        long result = db.insertWithOnConflict(
+                com.example.tickertide.model.PortfolioItem.TABLE_NAME,
+                null,
+                values,
+                SQLiteDatabase.CONFLICT_REPLACE
+        );
+        return result;
+    }
+
+    public com.example.tickertide.model.PortfolioItem getPortfolioItemBySymbol(String symbol) {
+        SQLiteDatabase db = getReadableDatabase();
+        Cursor cursor = db.query(
+                com.example.tickertide.model.PortfolioItem.TABLE_NAME,
+                null,
+                com.example.tickertide.model.PortfolioItem.COL_SYMBOL + " = ?",
+                new String[]{symbol},
+                null,
+                null,
+                null
+        );
+
+        if (cursor != null && cursor.moveToFirst()) {
+            com.example.tickertide.model.PortfolioItem item = new com.example.tickertide.model.PortfolioItem();
+            item.setSymbol(cursor.getString(cursor.getColumnIndexOrThrow(com.example.tickertide.model.PortfolioItem.COL_SYMBOL)));
+            item.setShares(cursor.getDouble(cursor.getColumnIndexOrThrow(com.example.tickertide.model.PortfolioItem.COL_SHARES)));
+            item.setAvgBuyPrice(cursor.getDouble(cursor.getColumnIndexOrThrow(com.example.tickertide.model.PortfolioItem.COL_AVG_BUY_PRICE)));
+            cursor.close();
+            return item;
+        }
+        if (cursor != null) cursor.close();
+        return null;
+    }
+
+    public List<com.example.tickertide.model.PortfolioItem> getAllPortfolioItems() {
+        List<com.example.tickertide.model.PortfolioItem> items = new ArrayList<>();
+        SQLiteDatabase db = getReadableDatabase();
+        Cursor cursor = db.query(
+                com.example.tickertide.model.PortfolioItem.TABLE_NAME,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+        );
+
+        if (cursor != null && cursor.moveToFirst()) {
+            do {
+                com.example.tickertide.model.PortfolioItem item = new com.example.tickertide.model.PortfolioItem();
+                item.setSymbol(cursor.getString(cursor.getColumnIndexOrThrow(com.example.tickertide.model.PortfolioItem.COL_SYMBOL)));
+                item.setShares(cursor.getDouble(cursor.getColumnIndexOrThrow(com.example.tickertide.model.PortfolioItem.COL_SHARES)));
+                item.setAvgBuyPrice(cursor.getDouble(cursor.getColumnIndexOrThrow(com.example.tickertide.model.PortfolioItem.COL_AVG_BUY_PRICE)));
+                
+                // Get current price & name from stocks table to join
+                Stock stock = getStockBySymbol(item.getSymbol());
+                if (stock != null) {
+                    item.setCurrentPrice(stock.getCurrentPrice());
+                    item.setCompanyName(stock.getCompanyName());
+                }
+
+                items.add(item);
+            } while (cursor.moveToNext());
+            cursor.close();
+        }
+        return items;
+    }
+
+    public int deletePortfolioItem(String symbol) {
+        SQLiteDatabase db = getWritableDatabase();
+        return db.delete(
+                com.example.tickertide.model.PortfolioItem.TABLE_NAME,
+                com.example.tickertide.model.PortfolioItem.COL_SYMBOL + " = ?",
+                new String[]{symbol}
+        );
+    }
+
+    // ================================================================
+    // OPERASI ALERTS
+    // ================================================================
+
+    public long insertAlert(com.example.tickertide.model.PriceAlert alert) {
+        SQLiteDatabase db = getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(com.example.tickertide.model.PriceAlert.COL_SYMBOL, alert.getSymbol());
+        values.put(com.example.tickertide.model.PriceAlert.COL_TARGET_PRICE, alert.getTargetPrice());
+        values.put(com.example.tickertide.model.PriceAlert.COL_IS_ABOVE, alert.isAbove() ? 1 : 0);
+        values.put(com.example.tickertide.model.PriceAlert.COL_IS_ACTIVE, alert.isActive() ? 1 : 0);
+
+        return db.insert(com.example.tickertide.model.PriceAlert.TABLE_NAME, null, values);
+    }
+
+    public List<com.example.tickertide.model.PriceAlert> getAllActiveAlerts() {
+        List<com.example.tickertide.model.PriceAlert> alerts = new ArrayList<>();
+        SQLiteDatabase db = getReadableDatabase();
+        Cursor cursor = db.query(
+                com.example.tickertide.model.PriceAlert.TABLE_NAME,
+                null,
+                com.example.tickertide.model.PriceAlert.COL_IS_ACTIVE + " = 1",
+                null,
+                null,
+                null,
+                null
+        );
+
+        if (cursor != null && cursor.moveToFirst()) {
+            do {
+                com.example.tickertide.model.PriceAlert alert = new com.example.tickertide.model.PriceAlert();
+                alert.setId(cursor.getInt(cursor.getColumnIndexOrThrow(com.example.tickertide.model.PriceAlert.COL_ID)));
+                alert.setSymbol(cursor.getString(cursor.getColumnIndexOrThrow(com.example.tickertide.model.PriceAlert.COL_SYMBOL)));
+                alert.setTargetPrice(cursor.getDouble(cursor.getColumnIndexOrThrow(com.example.tickertide.model.PriceAlert.COL_TARGET_PRICE)));
+                alert.setAbove(cursor.getInt(cursor.getColumnIndexOrThrow(com.example.tickertide.model.PriceAlert.COL_IS_ABOVE)) == 1);
+                alert.setActive(cursor.getInt(cursor.getColumnIndexOrThrow(com.example.tickertide.model.PriceAlert.COL_IS_ACTIVE)) == 1);
+                alerts.add(alert);
+            } while (cursor.moveToNext());
+            cursor.close();
+        }
+        return alerts;
+    }
+
+    public void updateAlertStatus(int id, boolean isActive) {
+        SQLiteDatabase db = getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(com.example.tickertide.model.PriceAlert.COL_IS_ACTIVE, isActive ? 1 : 0);
+        db.update(
+                com.example.tickertide.model.PriceAlert.TABLE_NAME,
+                values,
+                com.example.tickertide.model.PriceAlert.COL_ID + " = ?",
+                new String[]{String.valueOf(id)}
+        );
     }
 }

@@ -15,4 +15,18 @@
         android:title="@string/nav_watchlist"
         android:contentDescription="@string/nav_watchlist" />
 
+    <!-- Tab 3: Portfolio -->
+    <item
+        android:id="@+id/nav_portfolio"
+        android:icon="@android:drawable/ic_menu_agenda"
+        android:title="Portfolio"
+        android:contentDescription="Portfolio" />
+
+    <!-- Tab 4: Alerts -->
+    <item
+        android:id="@+id/nav_alerts"
+        android:icon="@android:drawable/ic_popup_reminder"
+        android:title="Alerts"
+        android:contentDescription="Price Alerts" />
+
 </menu>
