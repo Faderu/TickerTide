@@ -1,6 +1,6 @@
 # TickerTide 🌊📈
 
-[![Download APK](https://img.shields.io/badge/Download-APK-green?style=for-the-badge&logo=android)](https://github.com/username-kamu/TickerTide/releases/latest)
+[![Download APK](https://img.shields.io/badge/Download-APK-green?style=for-the-badge&logo=android)](https://github.com/Faderu/TickerTide/releases/tag/v1.0.0)
 
 **TickerTide** adalah aplikasi pemantauan saham dan simulasi *trading* (Mock Trading) interaktif yang memberikan kemudahan dalam menganalisis pasar saham secara *real-time*. Pengguna dapat mencari saham, menambahkannya ke dalam *Watchlist*, mengatur *Price Alerts*, serta melakukan simulasi beli/jual saham menggunakan uang virtual sebesar $10,000.
 
