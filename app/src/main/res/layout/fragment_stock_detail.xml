@@ -282,6 +282,7 @@
 
             <!-- Trading Section -->
             <TextView
+                android:id="@+id/tv_trade_label"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="32dp"
@@ -290,6 +291,17 @@
                 android:textSize="18sp"
                 android:textStyle="bold"
                 app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/card_stats" />
+
+            <TextView
+                android:id="@+id/tv_owned_lots"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="36dp"
+                android:text="Anda memiliki: 0 lot"
+                android:textColor="@color/text_secondary"
+                android:textSize="14sp"
+                app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/card_stats" />
 
             <LinearLayout

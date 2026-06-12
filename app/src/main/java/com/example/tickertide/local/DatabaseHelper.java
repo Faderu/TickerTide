@@ -473,7 +473,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     // OPERASI ALERTS
     // ================================================================
 
-    public long insertAlert(com.example.tickertide.model.PriceAlert alert) {
+    public long insertOrUpdateAlert(com.example.tickertide.model.PriceAlert alert) {
         SQLiteDatabase db = getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put(com.example.tickertide.model.PriceAlert.COL_SYMBOL, alert.getSymbol());
@@ -481,7 +481,30 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         values.put(com.example.tickertide.model.PriceAlert.COL_IS_ABOVE, alert.isAbove() ? 1 : 0);
         values.put(com.example.tickertide.model.PriceAlert.COL_IS_ACTIVE, alert.isActive() ? 1 : 0);
 
-        return db.insert(com.example.tickertide.model.PriceAlert.TABLE_NAME, null, values);
+        // Check if an active alert for this symbol already exists
+        Cursor cursor = db.query(com.example.tickertide.model.PriceAlert.TABLE_NAME, 
+                new String[]{com.example.tickertide.model.PriceAlert.COL_ID},
+                com.example.tickertide.model.PriceAlert.COL_SYMBOL + "=? AND " + com.example.tickertide.model.PriceAlert.COL_IS_ACTIVE + "=1",
+                new String[]{alert.getSymbol()}, null, null, null);
+                
+        if (cursor != null && cursor.moveToFirst()) {
+            int id = cursor.getInt(0);
+            cursor.close();
+            return db.update(com.example.tickertide.model.PriceAlert.TABLE_NAME, values, 
+                    com.example.tickertide.model.PriceAlert.COL_ID + "=?", new String[]{String.valueOf(id)});
+        } else {
+            if (cursor != null) cursor.close();
+            return db.insert(com.example.tickertide.model.PriceAlert.TABLE_NAME, null, values);
+        }
+    }
+
+    public int deleteAlert(int id) {
+        SQLiteDatabase db = getWritableDatabase();
+        return db.delete(
+                com.example.tickertide.model.PriceAlert.TABLE_NAME,
+                com.example.tickertide.model.PriceAlert.COL_ID + " = ?",
+                new String[]{String.valueOf(id)}
+        );
     }
 
     public List<com.example.tickertide.model.PriceAlert> getAllActiveAlerts() {

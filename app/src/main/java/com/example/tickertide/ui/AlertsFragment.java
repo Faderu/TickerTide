@@ -47,6 +47,31 @@ public class AlertsFragment extends Fragment {
         adapter = new AlertsAdapter();
         binding.recyclerViewAlerts.setLayoutManager(new LinearLayoutManager(requireContext()));
         binding.recyclerViewAlerts.setAdapter(adapter);
+
+        androidx.recyclerview.widget.ItemTouchHelper.SimpleCallback swipeCallback = new androidx.recyclerview.widget.ItemTouchHelper.SimpleCallback(0, androidx.recyclerview.widget.ItemTouchHelper.LEFT | androidx.recyclerview.widget.ItemTouchHelper.RIGHT) {
+            @Override
+            public boolean onMove(@NonNull androidx.recyclerview.widget.RecyclerView recyclerView, @NonNull androidx.recyclerview.widget.RecyclerView.ViewHolder viewHolder, @NonNull androidx.recyclerview.widget.RecyclerView.ViewHolder target) {
+                return false;
+            }
+
+            @Override
+            public void onSwiped(@NonNull androidx.recyclerview.widget.RecyclerView.ViewHolder viewHolder, int direction) {
+                int position = viewHolder.getAdapterPosition();
+                PriceAlert alert = adapter.getItem(position);
+                
+                executors.diskIO().execute(() -> {
+                    dbHelper.deleteAlert(alert.getId());
+                    loadAlerts(); // Reload list after deletion
+                    
+                    executors.mainThread().execute(() -> {
+                        if (isAdded()) {
+                            android.widget.Toast.makeText(requireContext(), "Alert dihapus", android.widget.Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                });
+            }
+        };
+        new androidx.recyclerview.widget.ItemTouchHelper(swipeCallback).attachToRecyclerView(binding.recyclerViewAlerts);
     }
 
     private void loadAlerts() {

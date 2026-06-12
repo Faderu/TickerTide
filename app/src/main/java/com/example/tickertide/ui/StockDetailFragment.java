@@ -230,6 +230,19 @@ public class StockDetailFragment extends Fragment {
         binding.tvDetailVolume.setText(formatVolume(stock.getVolume()));
         binding.tvDetailMarketCap.setText(formatMarketCap(stock.getMarketCap()));
 
+        // Tampilkan jumlah lot yang dimiliki
+        AppExecutors.getInstance().diskIO().execute(() -> {
+            com.example.tickertide.model.PortfolioItem item = dbHelper.getPortfolioItemBySymbol(stock.getSymbol());
+            AppExecutors.getInstance().mainThread().execute(() -> {
+                if (!isAdded() || binding == null) return;
+                int lots = item != null ? (int) item.getShares() : 0;
+                android.widget.TextView tvOwned = binding.getRoot().findViewById(R.id.tv_owned_lots);
+                if (tvOwned != null) {
+                    tvOwned.setText("Anda memiliki: " + lots + " lot");
+                }
+            });
+        });
+
         // Setup Bookmark Toggle
         updateBookmarkIcon(stock.isWatchlist());
         binding.ivBookmark.setOnClickListener(v -> {
@@ -278,10 +291,11 @@ public class StockDetailFragment extends Fragment {
                         );
                         
                         AppExecutors.getInstance().diskIO().execute(() -> {
-                            DatabaseHelper.getInstance(requireContext()).insertAlert(alert);
-                            AppExecutors.getInstance().mainThread().execute(() -> 
-                                android.widget.Toast.makeText(context, "Alert berhasil disimpan!", android.widget.Toast.LENGTH_SHORT).show()
-                            );
+                            DatabaseHelper.getInstance(requireContext()).insertOrUpdateAlert(alert);
+                            AppExecutors.getInstance().mainThread().execute(() -> {
+                                if (!isAdded()) return;
+                                android.widget.Toast.makeText(context, "Alert berhasil disimpan!", android.widget.Toast.LENGTH_SHORT).show();
+                            });
                         });
                     } catch (NumberFormatException e) {
                         android.widget.Toast.makeText(context, "Input tidak valid", android.widget.Toast.LENGTH_SHORT).show();
@@ -294,24 +308,64 @@ public class StockDetailFragment extends Fragment {
 
     private void showTradeDialog(Stock stock, boolean isBuy) {
         android.content.Context context = requireContext();
-        android.widget.EditText input = new android.widget.EditText(context);
-        input.setInputType(android.text.InputType.TYPE_CLASS_NUMBER | android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL);
-        input.setHint("Jumlah lembar saham");
         
-        String title = isBuy ? "Beli " + stock.getSymbol() : "Jual " + stock.getSymbol();
+        android.view.View dialogView = android.view.LayoutInflater.from(context).inflate(R.layout.dialog_trade, null);
+        android.widget.TextView tvTitle = dialogView.findViewById(R.id.tv_dialog_title);
+        android.widget.TextView tvPrice = dialogView.findViewById(R.id.tv_dialog_price);
+        android.widget.TextView tvTotal = dialogView.findViewById(R.id.tv_dialog_total);
+        android.widget.EditText etQuantity = dialogView.findViewById(R.id.et_quantity);
+        android.widget.ImageButton btnMinus = dialogView.findViewById(R.id.btn_minus);
+        android.widget.ImageButton btnPlus = dialogView.findViewById(R.id.btn_plus);
+
+        String actionStr = isBuy ? "Beli" : "Jual";
+        tvTitle.setText(actionStr + " " + stock.getSymbol());
+        tvPrice.setText(String.format(Locale.US, "Harga saat ini: $%.2f", stock.getCurrentPrice()));
         
-        new androidx.appcompat.app.AlertDialog.Builder(context)
-            .setTitle(title)
-            .setMessage("Harga saat ini: $" + stock.getCurrentPrice() + "\nMasukkan jumlah lembar:")
-            .setView(input)
-            .setPositiveButton(isBuy ? "Beli" : "Jual", (dialog, which) -> {
-                String val = input.getText().toString();
+        Runnable updateTotal = () -> {
+            try {
+                int q = Integer.parseInt(etQuantity.getText().toString());
+                tvTotal.setText(String.format(Locale.US, "Total: $%.2f", q * stock.getCurrentPrice()));
+            } catch (Exception e) {
+                tvTotal.setText("Total: $0.00");
+            }
+        };
+        
+        btnMinus.setOnClickListener(v -> {
+            try {
+                int q = Integer.parseInt(etQuantity.getText().toString());
+                if (q > 1) etQuantity.setText(String.valueOf(q - 1));
+            } catch (Exception e) { etQuantity.setText("1"); }
+            updateTotal.run();
+        });
+        
+        btnPlus.setOnClickListener(v -> {
+            try {
+                int q = Integer.parseInt(etQuantity.getText().toString());
+                etQuantity.setText(String.valueOf(q + 1));
+            } catch (Exception e) { etQuantity.setText("1"); }
+            updateTotal.run();
+        });
+        
+        etQuantity.addTextChangedListener(new android.text.TextWatcher() {
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            public void onTextChanged(CharSequence s, int start, int before, int count) {}
+            public void afterTextChanged(android.text.Editable s) { updateTotal.run(); }
+        });
+        
+        updateTotal.run();
+
+        new com.google.android.material.dialog.MaterialAlertDialogBuilder(context)
+            .setView(dialogView)
+            .setPositiveButton(actionStr, (dialog, which) -> {
+                String val = etQuantity.getText().toString();
                 if (!val.isEmpty()) {
                     try {
-                        double shares = Double.parseDouble(val);
-                        executeTrade(stock, shares, isBuy);
+                        int shares = Integer.parseInt(val);
+                        if (shares > 0) {
+                            executeTrade(stock, (double) shares, isBuy);
+                        }
                     } catch (NumberFormatException e) {
-                        android.widget.Toast.makeText(context, "Input tidak valid", android.widget.Toast.LENGTH_SHORT).show();
+                        Toast.makeText(context, "Jumlah tidak valid", Toast.LENGTH_SHORT).show();
                     }
                 }
             })

@@ -28,6 +28,10 @@ public class AlertsAdapter extends RecyclerView.Adapter<AlertsAdapter.AlertsView
         notifyDataSetChanged();
     }
 
+    public PriceAlert getItem(int position) {
+        return items.get(position);
+    }
+
     @NonNull
     @Override
     public AlertsViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
