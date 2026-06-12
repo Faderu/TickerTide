@@ -65,7 +65,7 @@ public class WatchlistFragment extends Fragment implements StockAdapter.OnStockC
                         // Hapus dari watchlist
                         stock.setWatchlist(false);
                         executors.diskIO().execute(() -> {
-                            dbHelper.insertOrUpdateStock(stock);
+                            dbHelper.updateWatchlistStatus(stock.getSymbol(), false);
                             executors.mainThread().execute(() -> {
                                 loadWatchlist(); // Refresh UI
                                 android.widget.Toast.makeText(requireContext(), stock.getSymbol() + " dihapus dari Watchlist", android.widget.Toast.LENGTH_SHORT).show();

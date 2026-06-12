@@ -314,8 +314,8 @@ public class StockDetailFragment extends Fragment {
         android.widget.TextView tvPrice = dialogView.findViewById(R.id.tv_dialog_price);
         android.widget.TextView tvTotal = dialogView.findViewById(R.id.tv_dialog_total);
         android.widget.EditText etQuantity = dialogView.findViewById(R.id.et_quantity);
-        android.widget.ImageButton btnMinus = dialogView.findViewById(R.id.btn_minus);
-        android.widget.ImageButton btnPlus = dialogView.findViewById(R.id.btn_plus);
+        android.widget.TextView btnMinus = dialogView.findViewById(R.id.btn_minus);
+        android.widget.TextView btnPlus = dialogView.findViewById(R.id.btn_plus);
 
         String actionStr = isBuy ? "Beli" : "Jual";
         tvTitle.setText(actionStr + " " + stock.getSymbol());

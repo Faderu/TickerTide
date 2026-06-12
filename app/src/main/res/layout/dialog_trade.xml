@@ -34,16 +34,19 @@
         android:background="@drawable/shape_search_capsule"
         android:padding="4dp">
 
-        <com.google.android.material.button.MaterialButton
+        <TextView
             android:id="@+id/btn_minus"
             android:layout_width="48dp"
             android:layout_height="48dp"
             android:text="-"
             android:textSize="24sp"
+            android:textStyle="bold"
+            android:gravity="center"
             android:contentDescription="Kurang"
-            app:backgroundTint="@color/surface_dark"
+            android:background="@drawable/shape_search_capsule"
             android:textColor="@color/text_primary"
-            app:cornerRadius="8dp" />
+            android:clickable="true"
+            android:focusable="true" />
 
         <EditText
             android:id="@+id/et_quantity"
@@ -58,16 +61,19 @@
             android:textSize="18sp"
             android:textStyle="bold" />
 
-        <com.google.android.material.button.MaterialButton
+        <TextView
             android:id="@+id/btn_plus"
             android:layout_width="48dp"
             android:layout_height="48dp"
             android:text="+"
-            android:textSize="20sp"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:gravity="center"
             android:contentDescription="Tambah"
-            app:backgroundTint="@color/surface_dark"
+            android:background="@drawable/shape_search_capsule"
             android:textColor="@color/text_primary"
-            app:cornerRadius="8dp" />
+            android:clickable="true"
+            android:focusable="true" />
 
     </LinearLayout>
     
