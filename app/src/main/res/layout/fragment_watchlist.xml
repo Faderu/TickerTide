@@ -28,7 +28,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Offline Cache / Recent Stocks"
+            android:text="Your Favorite Stocks"
             android:textColor="@color/text_secondary"
             android:textSize="14sp" />
     </LinearLayout>
@@ -47,9 +47,10 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/empty_state_message"
+            android:text="Belum ada saham favorit.\nBuka detail saham dan tekan ikon bintang untuk menambahkannya ke Watchlist."
             android:textColor="@color/text_secondary"
             android:textSize="15sp"
+            android:textAlignment="center"
             android:gravity="center" />
     </LinearLayout>
 

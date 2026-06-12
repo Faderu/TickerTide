@@ -46,11 +46,11 @@ public interface ApiService {
     );
 
     /**
-     * GET /v3/profile/{symbol}
-     * Mendapatkan profil detail satu perusahaan.
+     * GET /v3/quote/{symbol}
+     * Mendapatkan profil/quote detail satu perusahaan.
      * Digunakan di StockDetailFragment.
      */
-    @GET("v3/profile/{symbol}")
+    @GET("v3/quote/{symbol}")
     Call<List<Stock>> getStockProfile(
             @retrofit2.http.Path("symbol") String symbol,
             @Header("x-rapidapi-host") String host,

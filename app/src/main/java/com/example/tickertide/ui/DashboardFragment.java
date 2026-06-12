@@ -185,6 +185,8 @@ public class DashboardFragment extends Fragment implements StockAdapter.OnStockC
             @Override
             public void onResponse(@NonNull Call<List<Stock>> call,
                                    @NonNull Response<List<Stock>> response) {
+                if (!isAdded() || binding == null) return;
+                
                 showLoading(false);
                 binding.swipeRefreshLayout.setRefreshing(false);
 
@@ -209,6 +211,8 @@ public class DashboardFragment extends Fragment implements StockAdapter.OnStockC
 
             @Override
             public void onFailure(@NonNull Call<List<Stock>> call, @NonNull Throwable t) {
+                if (!isAdded() || binding == null) return;
+                
                 // JARINGAN PUTUS → tampilkan data lokal + tombol refresh
                 showLoading(false);
                 binding.swipeRefreshLayout.setRefreshing(false);

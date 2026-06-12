@@ -123,6 +123,7 @@ public class StockDetailFragment extends Fragment {
             @Override
             public void onResponse(@NonNull Call<List<Stock>> call,
                                    @NonNull Response<List<Stock>> response) {
+                if (!isAdded() || binding == null) return;
                 showLoading(false);
 
                 if (response.isSuccessful() && response.body() != null
@@ -150,6 +151,7 @@ public class StockDetailFragment extends Fragment {
 
             @Override
             public void onFailure(@NonNull Call<List<Stock>> call, @NonNull Throwable t) {
+                if (!isAdded() || binding == null) return;
                 showLoading(false);
                 Log.e(TAG, "Gagal fetch detail: " + t.getMessage());
                 // Fallback ke data lokal
