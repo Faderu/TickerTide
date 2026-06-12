@@ -402,6 +402,11 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return result;
     }
 
+    public void clearPortfolio() {
+        SQLiteDatabase db = getWritableDatabase();
+        db.delete(com.example.tickertide.model.PortfolioItem.TABLE_NAME, null, null);
+    }
+
     public com.example.tickertide.model.PortfolioItem getPortfolioItemBySymbol(String symbol) {
         SQLiteDatabase db = getReadableDatabase();
         Cursor cursor = db.query(

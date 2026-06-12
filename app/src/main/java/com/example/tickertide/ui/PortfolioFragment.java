@@ -50,6 +50,29 @@ public class PortfolioFragment extends Fragment implements PortfolioAdapter.OnPo
             prefs.edit().putFloat("cash_balance", 10000.00f).apply();
         }
 
+        android.widget.ImageButton btnReset = binding.getRoot().findViewById(com.example.tickertide.R.id.btn_reset_portfolio);
+        if (btnReset != null) {
+            btnReset.setOnClickListener(v -> {
+                new com.google.android.material.dialog.MaterialAlertDialogBuilder(requireContext(), com.example.tickertide.R.style.Theme_TickerTide_DarkDialog)
+                    .setTitle("Reset Portofolio")
+                    .setMessage("Apakah Anda yakin ingin mereset simulasi? Semua saham Anda akan dijual dan saldo uang kembali menjadi $10,000.00.")
+                    .setPositiveButton("Reset", (dialog, which) -> {
+                        prefs.edit().putFloat("cash_balance", 10000.00f).apply();
+                        executors.diskIO().execute(() -> {
+                            dbHelper.clearPortfolio();
+                            executors.mainThread().execute(() -> {
+                                if (isAdded()) {
+                                    loadPortfolio();
+                                    android.widget.Toast.makeText(requireContext(), "Simulasi di-reset!", android.widget.Toast.LENGTH_SHORT).show();
+                                }
+                            });
+                        });
+                    })
+                    .setNegativeButton("Batal", null)
+                    .show();
+            });
+        }
+
         setupRecyclerView();
         loadPortfolio();
     }
