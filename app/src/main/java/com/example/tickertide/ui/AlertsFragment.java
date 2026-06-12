@@ -54,6 +54,8 @@ public class AlertsFragment extends Fragment {
             List<PriceAlert> alerts = dbHelper.getAllActiveAlerts();
 
             executors.mainThread().execute(() -> {
+                if (!isAdded() || binding == null) return;
+                
                 if (alerts.isEmpty()) {
                     binding.layoutEmptyState.setVisibility(View.VISIBLE);
                     binding.recyclerViewAlerts.setVisibility(View.GONE);

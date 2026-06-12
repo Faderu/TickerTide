@@ -76,6 +76,8 @@ public class PortfolioFragment extends Fragment implements PortfolioAdapter.OnPo
             final double finalTotalCost = totalCost;
 
             executors.mainThread().execute(() -> {
+                if (!isAdded() || binding == null) return;
+                
                 if (items.isEmpty()) {
                     binding.layoutEmptyState.setVisibility(View.VISIBLE);
                     binding.recyclerViewPortfolio.setVisibility(View.GONE);

@@ -80,6 +80,8 @@ public class WatchlistFragment extends Fragment implements StockAdapter.OnStockC
         executors.diskIO().execute(() -> {
             List<Stock> localStocks = dbHelper.getStarredWatchlistStocks();
             executors.mainThread().execute(() -> {
+                if (!isAdded() || binding == null) return;
+                
                 if (localStocks.isEmpty()) {
                     binding.layoutEmptyState.setVisibility(View.VISIBLE);
                     binding.recyclerViewWatchlist.setVisibility(View.GONE);

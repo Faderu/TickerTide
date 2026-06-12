@@ -128,8 +128,20 @@ public class StockDetailFragment extends Fragment {
                 if (response.isSuccessful() && response.body() != null
                         && !response.body().isEmpty()) {
                     Stock stock = response.body().get(0);
-                    populateUI(stock);
-                    Log.d(TAG, "Detail saham " + symbol + " loaded dari API.");
+                    
+                    // Fetch status watchlist & timestamp dari lokal
+                    executors.diskIO().execute(() -> {
+                        Stock local = dbHelper.getStockBySymbol(stock.getSymbol());
+                        if (local != null) {
+                            stock.setWatchlist(local.isWatchlist());
+                        }
+                        
+                        executors.mainThread().execute(() -> {
+                            if (!isAdded() || binding == null) return;
+                            populateUI(stock);
+                            Log.d(TAG, "Detail saham " + symbol + " loaded dari API.");
+                        });
+                    });
                 } else {
                     Log.e(TAG, "API response kosong untuk " + symbol);
                     loadDetailFromLocalDb(symbol);
@@ -157,6 +169,8 @@ public class StockDetailFragment extends Fragment {
             Stock stock = dbHelper.getStockBySymbol(symbol);
 
             executors.mainThread().execute(() -> {
+                if (!isAdded() || binding == null) return;
+                
                 showLoading(false);
                 if (stock != null) {
                     populateUI(stock);
@@ -223,8 +237,9 @@ public class StockDetailFragment extends Fragment {
             
             // Simpan ke database via background thread
             AppExecutors.getInstance().diskIO().execute(() -> {
-                DatabaseHelper.getInstance(requireContext()).insertOrUpdateStock(stock);
+                DatabaseHelper.getInstance(requireContext()).updateWatchlistStatus(stock.getSymbol(), newState);
                 AppExecutors.getInstance().mainThread().execute(() -> {
+                    if (!isAdded()) return;
                     String msg = newState ? "Ditambahkan ke Watchlist" : "Dihapus dari Watchlist";
                     android.widget.Toast.makeText(requireContext(), msg, android.widget.Toast.LENGTH_SHORT).show();
                 });
@@ -327,13 +342,17 @@ public class StockDetailFragment extends Fragment {
                     
                     db.insertOrUpdatePortfolioItem(portfolio);
                     
-                    AppExecutors.getInstance().mainThread().execute(() -> 
-                        android.widget.Toast.makeText(requireContext(), "Berhasil beli " + shares + " " + stock.getSymbol(), android.widget.Toast.LENGTH_SHORT).show()
-                    );
+                    AppExecutors.getInstance().mainThread().execute(() -> {
+                        if (isAdded()) {
+                            android.widget.Toast.makeText(requireContext(), "Pembelian " + shares + " lot " + stock.getSymbol() + " berhasil!", android.widget.Toast.LENGTH_SHORT).show();
+                        }
+                    });
                 } else {
-                    AppExecutors.getInstance().mainThread().execute(() -> 
-                        android.widget.Toast.makeText(requireContext(), "Saldo tidak cukup!", android.widget.Toast.LENGTH_SHORT).show()
-                    );
+                    AppExecutors.getInstance().mainThread().execute(() -> {
+                        if (isAdded()) {
+                            android.widget.Toast.makeText(requireContext(), "Gagal membeli saham!", android.widget.Toast.LENGTH_SHORT).show();
+                        }
+                    });
                 }
             } else { // SELL
                 if (portfolio.getShares() >= shares) {
@@ -349,13 +368,17 @@ public class StockDetailFragment extends Fragment {
                         db.insertOrUpdatePortfolioItem(portfolio);
                     }
                     
-                    AppExecutors.getInstance().mainThread().execute(() -> 
-                        android.widget.Toast.makeText(requireContext(), "Berhasil jual " + shares + " " + stock.getSymbol(), android.widget.Toast.LENGTH_SHORT).show()
-                    );
+                    AppExecutors.getInstance().mainThread().execute(() -> {
+                        if (isAdded()) {
+                            android.widget.Toast.makeText(requireContext(), "Penjualan " + shares + " lot " + stock.getSymbol() + " berhasil!", android.widget.Toast.LENGTH_SHORT).show();
+                        }
+                    });
                 } else {
-                    AppExecutors.getInstance().mainThread().execute(() -> 
-                        android.widget.Toast.makeText(requireContext(), "Lembar saham tidak cukup!", android.widget.Toast.LENGTH_SHORT).show()
-                    );
+                    AppExecutors.getInstance().mainThread().execute(() -> {
+                        if (isAdded()) {
+                            android.widget.Toast.makeText(requireContext(), "Lembar saham tidak cukup!", android.widget.Toast.LENGTH_SHORT).show();
+                        }
+                    });
                 }
             }
         });

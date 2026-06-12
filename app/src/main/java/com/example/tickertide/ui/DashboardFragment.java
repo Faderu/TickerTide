@@ -233,6 +233,9 @@ public class DashboardFragment extends Fragment implements StockAdapter.OnStockC
 
             // Update UI di main thread
             executors.mainThread().execute(() -> {
+                if (!isAdded() || binding == null) return;
+                
+                showLoading(false);
                 if (localStocks.isEmpty()) {
                     showEmptyState(true);
                 } else {

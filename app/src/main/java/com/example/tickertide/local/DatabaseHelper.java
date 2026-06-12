@@ -145,6 +145,22 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
     /**
+     * Memperbarui status watchlist untuk saham tertentu.
+     * Dipanggil dari UI saat pengguna meng-klik tombol Bookmark.
+     */
+    public void updateWatchlistStatus(String symbol, boolean isWatchlist) {
+        SQLiteDatabase db = getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(Stock.COL_IS_WATCHLIST, isWatchlist ? 1 : 0);
+        db.update(
+                Stock.TABLE_NAME,
+                values,
+                Stock.COL_SYMBOL + " = ?",
+                new String[]{symbol}
+        );
+    }
+
+    /**
      * Simpan banyak saham sekaligus dalam satu transaksi (efisien).
      *
      * @param stocks List saham yang akan disimpan
