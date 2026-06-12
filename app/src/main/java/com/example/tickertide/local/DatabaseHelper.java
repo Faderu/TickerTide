@@ -46,8 +46,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             Stock.COL_CHANGE     + " REAL DEFAULT 0, " +
             Stock.COL_HIGH       + " REAL DEFAULT 0, " +
             Stock.COL_LOW        + " REAL DEFAULT 0, " +
-            Stock.COL_VOLUME     + " INTEGER DEFAULT 0, " +
-            Stock.COL_MARKET_CAP + " INTEGER DEFAULT 0, " +
+            Stock.COL_VOLUME     + " REAL DEFAULT 0, " +
+            Stock.COL_MARKET_CAP + " REAL DEFAULT 0, " +
             Stock.COL_TIMESTAMP  + " INTEGER DEFAULT 0" +
             ");";
 
@@ -292,8 +292,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         stock.setChangePercent(cursor.getDouble(idxChange));
         stock.setDayHigh(cursor.getDouble(idxHigh));
         stock.setDayLow(cursor.getDouble(idxLow));
-        stock.setVolume(cursor.getLong(idxVolume));
-        stock.setMarketCap(cursor.getLong(idxMarketCap));
+        stock.setVolume(cursor.getDouble(idxVolume));
+        stock.setMarketCap(cursor.getDouble(idxMarketCap));
         stock.setTimestamp(cursor.getLong(idxTimestamp));
 
         return stock;

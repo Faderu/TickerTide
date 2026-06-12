@@ -45,10 +45,10 @@ public class Stock {
     private double dayLow;
 
     @SerializedName("volume")
-    private long volume;
+    private double volume;
 
     @SerializedName("marketCap")
-    private long marketCap;
+    private double marketCap;
 
     // Field tambahan untuk local DB tracking
     private long timestamp;
@@ -63,7 +63,7 @@ public class Stock {
 
     public Stock(String symbol, String companyName, double currentPrice,
                  double changePercent, double dayHigh, double dayLow,
-                 long volume, long marketCap) {
+                 double volume, double marketCap) {
         this.symbol       = symbol;
         this.companyName  = companyName;
         this.currentPrice = currentPrice;
@@ -97,11 +97,11 @@ public class Stock {
     public double getDayLow() { return dayLow; }
     public void setDayLow(double dayLow) { this.dayLow = dayLow; }
 
-    public long getVolume() { return volume; }
-    public void setVolume(long volume) { this.volume = volume; }
+    public double getVolume() { return volume; }
+    public void setVolume(double volume) { this.volume = volume; }
 
-    public long getMarketCap() { return marketCap; }
-    public void setMarketCap(long marketCap) { this.marketCap = marketCap; }
+    public double getMarketCap() { return marketCap; }
+    public void setMarketCap(double marketCap) { this.marketCap = marketCap; }
 
     public long getTimestamp() { return timestamp; }
     public void setTimestamp(long timestamp) { this.timestamp = timestamp; }

@@ -211,7 +211,7 @@ public class StockDetailFragment extends Fragment {
     // Formatting Helpers
     // ================================================================
 
-    private String formatVolume(long volume) {
+    private String formatVolume(double volume) {
         if (volume >= 1_000_000_000L) {
             return String.format(Locale.US, "%.2fB", volume / 1_000_000_000.0);
         } else if (volume >= 1_000_000L) {
@@ -219,10 +219,10 @@ public class StockDetailFragment extends Fragment {
         } else if (volume >= 1_000L) {
             return String.format(Locale.US, "%.2fK", volume / 1_000.0);
         }
-        return String.valueOf(volume);
+        return String.valueOf((long) volume);
     }
 
-    private String formatMarketCap(long marketCap) {
+    private String formatMarketCap(double marketCap) {
         if (marketCap >= 1_000_000_000_000L) {
             return String.format(Locale.US, "$%.2fT", marketCap / 1_000_000_000_000.0);
         } else if (marketCap >= 1_000_000_000L) {
@@ -230,7 +230,7 @@ public class StockDetailFragment extends Fragment {
         } else if (marketCap >= 1_000_000L) {
             return String.format(Locale.US, "$%.2fM", marketCap / 1_000_000.0);
         }
-        return "$" + marketCap;
+        return "$" + (long) marketCap;
     }
 
     // ================================================================
