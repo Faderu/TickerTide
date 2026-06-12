@@ -354,7 +354,7 @@ public class StockDetailFragment extends Fragment {
         
         updateTotal.run();
 
-        new com.google.android.material.dialog.MaterialAlertDialogBuilder(context)
+        new com.google.android.material.dialog.MaterialAlertDialogBuilder(context, R.style.Theme_TickerTide_DarkDialog)
             .setView(dialogView)
             .setPositiveButton(actionStr, (dialog, which) -> {
                 String val = etQuantity.getText().toString();

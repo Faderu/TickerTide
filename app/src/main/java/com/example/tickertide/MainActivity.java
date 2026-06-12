@@ -37,6 +37,15 @@ public class MainActivity extends AppCompatActivity {
 
             // Hubungkan BottomNavigationView dengan NavController
             NavigationUI.setupWithNavController(binding.bottomNav, navController);
+
+            // Sembunyikan BottomNav saat berada di halaman detail saham
+            navController.addOnDestinationChangedListener((controller, destination, arguments) -> {
+                if (destination.getId() == R.id.stockDetailFragment) {
+                    binding.bottomNav.setVisibility(android.view.View.GONE);
+                } else {
+                    binding.bottomNav.setVisibility(android.view.View.VISIBLE);
+                }
+            });
         }
     }
 

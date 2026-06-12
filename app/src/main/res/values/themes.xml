@@ -74,4 +74,15 @@
         <item name="titleTextColor">@color/text_primary</item>
     </style>
 
+    <!-- =====================================================
+         DARK DIALOG THEME
+    ====================================================== -->
+    <style name="Theme.TickerTide.DarkDialog" parent="ThemeOverlay.Material3.MaterialAlertDialog">
+        <item name="android:background">@color/bg_deep_space</item>
+        <item name="colorSurface">@color/bg_deep_space</item>
+        <item name="colorOnSurface">@color/text_primary</item>
+        <item name="android:textColorPrimary">@color/text_primary</item>
+        <item name="android:textColorSecondary">@color/text_secondary</item>
+    </style>
+
 </resources>
