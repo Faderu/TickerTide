@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Tab 1: Dashboard / Beranda - matches dashboardFragment ID di nav_graph -->
+    <item
+        android:id="@+id/dashboardFragment"
+        android:icon="@android:drawable/ic_menu_compass"
+        android:title="@string/nav_home"
+        android:contentDescription="@string/nav_home" />
+
+    <!-- Tab 2: Watchlist -->
+    <item
+        android:id="@+id/nav_watchlist"
+        android:icon="@android:drawable/ic_menu_myplaces"
+        android:title="@string/nav_watchlist"
+        android:contentDescription="@string/nav_watchlist" />
+
+</menu>

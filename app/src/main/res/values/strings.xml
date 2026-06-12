@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- App Name -->
+    <string name="app_name">TickerTide</string>
+
+    <!-- Splash Screen -->
+    <string name="splash_tagline">Pantau Pasar. Raih Keputusan.</string>
+
+    <!-- Navigation Titles -->
+    <string name="title_dashboard">Beranda</string>
+    <string name="title_detail">Detail Saham</string>
+    <string name="title_watchlist">Watchlist</string>
+
+    <!-- Bottom Navigation -->
+    <string name="nav_home">Beranda</string>
+    <string name="nav_watchlist">Watchlist</string>
+    <string name="nav_profile">Profil</string>
+
+    <!-- Dashboard -->
+    <string name="greeting">Selamat Datang</string>
+    <string name="search_hint">Cari emiten saham…</string>
+    <string name="label_market">Pasar Hari Ini</string>
+    <string name="label_watchlist_section">Watchlist Saya</string>
+    <string name="btn_refresh">Refresh</string>
+    <string name="offline_mode_banner">Mode Offline · Menampilkan data terakhir</string>
+    <string name="empty_state_message">Belum ada data.\nPastikan koneksi internet aktif dan tekan Refresh.</string>
+
+    <!-- Detail Fragment -->
+    <string name="label_day_high">Tertinggi Hari Ini</string>
+    <string name="label_day_low">Terendah Hari Ini</string>
+    <string name="label_volume">Volume</string>
+    <string name="label_market_cap">Market Cap</string>
+    <string name="label_change">Perubahan</string>
+
+    <!-- Error Messages -->
+    <string name="error_no_internet">Tidak ada koneksi internet.</string>
+    <string name="error_offline_mode">Jaringan tidak tersedia. Menampilkan data lokal.</string>
+    <string name="error_api_response">Gagal memuat data dari server.</string>
+    <string name="error_data_not_found">Data saham tidak ditemukan.\nCoba kembali saat online.</string>
+
+    <!-- Content Descriptions (Accessibility) -->
+    <string name="cd_stock_icon">Ikon saham</string>
+    <string name="cd_refresh_button">Tombol refresh data</string>
+    <string name="cd_back_button">Kembali</string>
+</resources>

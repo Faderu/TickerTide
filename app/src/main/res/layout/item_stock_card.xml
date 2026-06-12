@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/card_stock"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="12dp"
+    app:cardBackgroundColor="@color/surface_dark"
+    app:cardCornerRadius="20dp"
+    app:cardElevation="0dp"
+    app:strokeColor="@color/border_tonal"
+    app:strokeWidth="1dp">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="16dp">
+
+        <!-- Icon circle background -->
+        <View
+            android:id="@+id/view_icon_bg"
+            android:layout_width="46dp"
+            android:layout_height="46dp"
+            android:background="@drawable/shape_circle_tonal"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <!-- Symbol awal perusahaan (huruf pertama simbol) -->
+        <TextView
+            android:id="@+id/tv_symbol_letter"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/mint_growth"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            app:layout_constraintBottom_toBottomOf="@id/view_icon_bg"
+            app:layout_constraintEnd_toEndOf="@id/view_icon_bg"
+            app:layout_constraintStart_toStartOf="@id/view_icon_bg"
+            app:layout_constraintTop_toTopOf="@id/view_icon_bg" />
+
+        <!-- Simbol saham (mis. AAPL) -->
+        <TextView
+            android:id="@+id/tv_stock_symbol"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="14dp"
+            android:text="AAPL"
+            android:textColor="@color/text_primary"
+            android:textSize="17sp"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toStartOf="@id/tv_stock_price"
+            app:layout_constraintStart_toEndOf="@id/view_icon_bg"
+            app:layout_constraintTop_toTopOf="@id/view_icon_bg" />
+
+        <!-- Nama perusahaan -->
+        <TextView
+            android:id="@+id/tv_company_name"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:text="Apple Inc."
+            android:textColor="@color/text_secondary"
+            android:textSize="12sp"
+            app:layout_constraintEnd_toStartOf="@id/tv_stock_price"
+            app:layout_constraintStart_toStartOf="@id/tv_stock_symbol"
+            app:layout_constraintTop_toBottomOf="@id/tv_stock_symbol" />
+
+        <!-- Harga saham saat ini -->
+        <TextView
+            android:id="@+id/tv_stock_price"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="$189.45"
+            android:textColor="@color/text_primary"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="@id/tv_stock_symbol" />
+
+        <!-- Perubahan persentase harga -->
+        <TextView
+            android:id="@+id/tv_change_percent"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="3dp"
+            android:text="+2.40%"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tv_stock_price" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</com.google.android.material.card.MaterialCardView>
